@@ -69,6 +69,7 @@ Global options go **before** the command name.
 ```
 .
 ├── README.md                    <- you are here: overview and usage
+├── .github/workflows/tests.yml  <- runs the tests on GitHub for every PR
 ├── fantasy_analyzer/            <- the program itself
 │   ├── README.md                <- code guide: what every file and section does
 │   ├── __init__.py              <- library interface (import fantasy_analyzer)
@@ -96,3 +97,6 @@ Every Python file opens with a header box (purpose and contents), and its code i
 ```bash
 python -m unittest -v
 ```
+
+GitHub also runs these tests automatically on every pull request and every push to `main`, on Python
+3.10–3.13 (see `.github/workflows/tests.yml`). Check for the green tick on a PR before merging.
