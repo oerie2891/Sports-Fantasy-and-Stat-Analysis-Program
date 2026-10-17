@@ -1,3 +1,20 @@
+"""
+=============================================================================
+ TEST SUITE  (tests/test_analysis.py)
+=============================================================================
+ PURPOSE
+   Automatically checks the program still gives correct answers.
+   Run with:  python -m unittest
+
+ CONTENTS
+   0. Test fixtures      - sample file path, simple scoring, log builder
+   1. ScoringTests       - points are calculated correctly per format
+   2. StatHelperTests    - percentile and slope math
+   3. AnalyzeTests       - per-player metrics, VOR, boom/bust, lookup
+   4. DataAndCliTests    - CSV loading, error messages, every CLI command
+=============================================================================
+"""
+
 import contextlib
 import io
 import tempfile
@@ -8,6 +25,10 @@ from fantasy_analyzer import GameLog, ScoringSystem, analyze, find_player, get_s
 from fantasy_analyzer.analysis import percentile, slope
 from fantasy_analyzer.cli import main
 
+# ---------------------------------------------------------------------------
+# SECTION 0: TEST FIXTURES
+# Shared inputs used by the tests below.
+# ---------------------------------------------------------------------------
 SAMPLE = Path(__file__).resolve().parent.parent / "data" / "sample_nfl_2026.csv"
 SIMPLE = ScoringSystem("test", {"pts": 1.0}, {"X": 1}, teams=1)
 
@@ -16,6 +37,10 @@ def logs(player, position, scores):
     return [GameLog(player, position, "", week, {"pts": s}) for week, s in enumerate(scores, start=1)]
 
 
+# ---------------------------------------------------------------------------
+# SECTION 1: SCORING
+# Same stat line must score differently in standard / half / full PPR.
+# ---------------------------------------------------------------------------
 class ScoringTests(unittest.TestCase):
     def test_ppr_vs_standard(self):
         line = {"rec": 5, "rec_yds": 60, "rec_td": 1}
@@ -28,6 +53,10 @@ class ScoringTests(unittest.TestCase):
             get_scoring("cricket")
 
 
+# ---------------------------------------------------------------------------
+# SECTION 2: MATH HELPERS
+# Hand-checked percentile and slope values.
+# ---------------------------------------------------------------------------
 class StatHelperTests(unittest.TestCase):
     def test_percentile(self):
         self.assertEqual(percentile([1, 2, 3, 4, 5], 50), 3)
@@ -39,6 +68,10 @@ class StatHelperTests(unittest.TestCase):
         self.assertEqual(slope([1], [5]), 0.0)
 
 
+# ---------------------------------------------------------------------------
+# SECTION 3: ANALYSIS ENGINE
+# Three made-up players (Star, Mid, Scrub) with hand-calculated answers.
+# ---------------------------------------------------------------------------
 class AnalyzeTests(unittest.TestCase):
     def setUp(self):
         data = logs("Star", "X", [20, 22, 18, 30]) + logs("Mid", "X", [10, 10, 10, 10]) + logs("Scrub", "X", [4, 2, 6, 0])
@@ -75,6 +108,10 @@ class AnalyzeTests(unittest.TestCase):
             find_player(reports, "nobody")
 
 
+# ---------------------------------------------------------------------------
+# SECTION 4: DATA LOADING AND COMMAND LINE
+# Runs the real sample CSV through every command.
+# ---------------------------------------------------------------------------
 class DataAndCliTests(unittest.TestCase):
     def test_loads_sample(self):
         data = load_game_logs(SAMPLE)
@@ -105,5 +142,9 @@ class DataAndCliTests(unittest.TestCase):
         self.assertIn("No player matching", out)
 
 
+# ---------------------------------------------------------------------------
+# SECTION 5: RUN DIRECTLY
+# Allows `python tests/test_analysis.py` as well as `python -m unittest`.
+# ---------------------------------------------------------------------------
 if __name__ == "__main__":
     unittest.main()
